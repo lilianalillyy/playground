@@ -22,7 +22,7 @@ fi
 
 
 # xinput disable $(xinput --list | grep M720.*keyboard | sed -E 's/.*id=([0-9]+).*/\1/g')
-``
+```
 
 The important part is only the first two lines, which can technically be written as one (see the commented out line), but fuck it.
 I recommend saving this script in your home folder, eg. `/home/liliana/fixmouse.sh`, though the location is up to you.
