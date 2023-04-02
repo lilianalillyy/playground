@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrator Proxy</title>
+
+    <script src="https://accounts.google.com/gsi/client"></script>
+</head>
+
+<body>
+    <div id="continue">
+        <p>Once you log in, a new playlist will be created on the selected (brand) account.</p>
+        <button onclick="promptAccess()">Continue with Google</button>
+    </div>
+    <b id="state"></b>
+    <script>
+        const videoIds = JSON.parse(`{{video_ids}}`);
+
+        const apiKey = `{{api_key}}`;
+        const clientId = `{{client_id}}`
+
+        const playlistTitle = `{{playlist_title}}`;
+        const playlistDescription = `{{playlist_description}}`;
+        const playlistPrivacy = `{{playlist_privacy}}`;
+
+        const continueEl = document.getElementById("continue");
+        const stateEl = document.getElementById("state");
+
+        function log(message = "", clear = false) {
+            const formatted = `${message}<br/>`;
+
+            (stateEl.innerHTML = `${clear ? '' : stateEl.innerHTML}${formatted}`);
+        }
+
+        function promptAccess() {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: "https://www.googleapis.com/auth/youtube.force-ssl",
+                callback: async (credential) => {
+                    continueEl.remove();
+
+                    if (!credential || !('access_token' in credential)) {
+                        return log("An unknown error occurred during OAuth2 flow. Please refresh the page to try again.");
+                    }
+
+                    return await createPlaylist(credential);
+                }
+            })
+
+            client.requestAccessToken();
+        }
+
+        async function req({ endpoint, api = { service: "youtube", version: "v3" }, method = "GET", body = null, credential = null }) {
+            return await (await fetch(`https://www.googleapis.com/${api.service}/${api.version}/${endpoint}`, {
+                ...(body && !["get", "head"].some(m => method.toLowerCase() === m)) ? { body: JSON.stringify(body) } : {},
+                method,
+                headers: {
+                    ...credential ? { Authorization: `${credential.token_type} ${credential.access_token}` } : {},
+                    'Content-Type': 'application/json; charset=UTF-8'
+                }
+            })).json()
+        }
+
+        async function createPlaylist(credential) {
+            const playlist = (await req({
+                endpoint: "playlists?part=snippet,status",
+                method: "POST",
+                body: {
+                    snippet: {
+                        title: playlistTitle,
+                        description: playlistDescription,
+                    },
+                    status: {
+                        privacyStatus: playlistPrivacy,
+                    },
+                },
+                credential,
+            }))
+
+            log(`Created an empty playlist <a href="https://www.youtube.com/playlist?list=${playlist.id}" target="_blank" rel="noreferrer noopener">
+                    <b>${playlistTitle}</b>
+                </a> (privacyStatus: "${playlistPrivacy}")
+            `)
+
+
+            for (const videoId of videoIds) {
+                try {
+                    await req({
+                    endpoint: "playlistItems?part=snippet",
+                    method: "POST",
+                    body: {
+                        snippet: {
+                            playlistId: playlist.id,
+                            resourceId: {
+                                kind: "youtube#video",
+                                videoId: videoId,
+                            },
+                        },
+
+                    },
+                    credential,
+                })
+
+                log(`Added <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noreferrer noopener">
+                        <b>${videoId}</b>
+                    </a> to the playlist")
+                `)
+                } catch (error) {
+                    log(`Failed to add <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noreferrer noopener"> <b>${videoId}</b></a>`)
+                    console.error(error);
+                }
+            }
+
+            await fetch('/shutdown')
+            log(`Done!`)
+            window.location.href = `https://www.youtube.com/playlist?list=${playlist.id}`
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,3 @@
+# playlist-recreate
+
+WIP, this project is gonna be used for more than what it currently can do...
