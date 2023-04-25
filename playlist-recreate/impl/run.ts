@@ -1,25 +1,30 @@
+import "../../swisk/src/polyfills.js";
 import { 
-    apiKey, 
+    apiKeys, 
+    frontApiKey,
     clientId, 
-    Migrator, 
+    forceYes, 
+    YouTubeRecreator, 
     playlistDescription, 
     playlistPrivacy, 
     playlistTitle, 
     processor, 
     staticTitleFilter, 
     staticVideoIds 
-} from "../src/Migrator.js";
+} from "../src/recreators/YouTubeRecreator.js";
 import { rootDir } from "../src/constants.js";
-import { ScreenshotProvider } from "../src/providers/ScreenshotProvider.js";
+import { ScreenshotProvider } from "../src/screenshot/ScreenshotProvider.js";
 import path from "path";
 
-new Migrator(
+new YouTubeRecreator(
     new ScreenshotProvider(
         //path.join(rootDir, "..", "images"),
         path.join(rootDir, "..", "playlist"),
         processor
     ),
-    apiKey,
+    forceYes,
+    apiKeys,
+    frontApiKey,
     clientId,
     playlistTitle,
     playlistDescription,

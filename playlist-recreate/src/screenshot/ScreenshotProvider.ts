@@ -1,4 +1,4 @@
-import { Provider } from "./Provider.js";
+import { Provider } from "../providers/Provider.js";
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import fs from "fs";
 import { sync as glob } from "glob";

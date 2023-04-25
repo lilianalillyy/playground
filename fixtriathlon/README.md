@@ -9,7 +9,10 @@ This means that the buttons cannot be mapped to keyboard (though if the keys are
 This is the script we're gonna run when the mouse get connected and detected by `udev` (you can also run it manually if needed):
 
 ```bash
-ID=$(xinput --list | grep M720.*Keyboard | sed -E 's/.*id=([0-9]+).*/\1/g');
+#ID=$(xinput --list | grep M720.*Keyboard | sed -E 's/.*id=([0-9]+).*/\1/g');
+
+# This should be a more reliable way 
+ID=$(xinput list --id-only "keyboard:Logitech M720 Triathlon")
 OUT=$(xinput disable $ID 2>&1);
 LOG="/home/liliana/fixmouse.log";
 

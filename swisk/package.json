@@ -1,0 +1,13 @@
+{
+  "name": "swisk",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "leven-sort": "^4.0.0",
+    "ora": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.0"
+  }
+}
