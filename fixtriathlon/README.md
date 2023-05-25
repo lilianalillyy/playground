@@ -63,3 +63,28 @@ echo $DISPLAY
 ```
 
 Then just save this to the file you created and restart. While you can technically reload udev, it's more reliable to reboot it.
+
+## Wayland
+
+```bash
+DEVICE_NAME="M720 Triathlon Keyboard"
+LOG="/home/liliana/fixmouse.log"
+
+# Find the device ID using libinput
+ID=$(libinput list-devices | awk -F'[[:space:]][[:space:]]+' '/keyboard.*'"$DEVICE_NAME"'/ {print $3}')
+if [ -z "$ID" ]; then
+  echo "Device $DEVICE_NAME not found."
+  exit 1
+fi
+
+# Disable the device using libinput
+OUT=$(libinput debug-events --disable-device $ID 2>&1)
+
+# Log the information
+if [ -n "$LOG" ]; then
+  echo $(date) >> "$LOG"
+  echo "id: $ID" >> "$LOG"
+  echo "$OUT" >> "$LOG"
+  echo "" >> "$LOG"
+fi
+```
